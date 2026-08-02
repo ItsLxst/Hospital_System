@@ -1,4 +1,4 @@
-import sqlite3
+ import sqlite3
 from contextlib import closing
 
 import streamlit as st
@@ -760,7 +760,7 @@ def seed_data():
             default_medicines = [
                 ("Paracetamol", "Painkiller / Fever", 500),
                 ("Ibuprofen", "Painkiller / Anti-inflammatory", 300),
-                ("Amoxicillin",, "Antibiotic", 200),
+                ("Amoxicillin", "Antibiotic", 200),
                 ("Azithromycin", "Antibiotic", 150),
                 ("Cetirizine", "Antihistamine / Allergy", 250),
                 ("Omeprazole", "Antacid", 300),
