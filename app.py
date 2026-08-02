@@ -453,6 +453,17 @@ st.markdown(
         font-size: 0.82rem;
         padding: 2rem 0 0.5rem;
     }
+    
+    /* ---------- Streamlit Header & Toolbar Hide ---------- */
+    header[data-testid="stHeader"] {
+        display: none !important;
+    }
+    div[data-testid="stToolbar"] {
+        display: none !important;
+    }
+    div[data-testid="stDecoration"] {
+        display: none !important;
+    }
     </style>
     """,
     unsafe_allow_html=True,
