@@ -774,11 +774,11 @@ def seed_data():
                 "INSERT INTO medicines (name, category, stock) VALUES (?,?,?)",
                 default_medicines,
             )
-            cur.execute("SELECT COUNT(*) FROM patients")
+        
+        cur.execute("SELECT COUNT(*) FROM patients")
         if cur.fetchone()[0] == 0:
             cur.execute("SELECT id FROM users WHERE role = 'doctor' ORDER BY id")
             doctor_ids = [r[0] for r in cur.fetchall()]
-
             sample_patients = [
                 ("Rohit Verma", "9876543210", "Chest pain"),
                 ("Sneha Joshi", "9876543211", "Fracture in left arm"),
@@ -789,7 +789,6 @@ def seed_data():
                 ("Devansh Rathi", "9876543216", "Ear infection"),
                 ("Ananya Reddy", "9876543217", "Anxiety and stress"),
             ]
-
             for i, (name, phone, illness) in enumerate(sample_patients):
                 cur.execute("INSERT INTO patients (name, phone) VALUES (?,?)", (name, phone))
                 patient_id = cur.lastrowid
@@ -798,8 +797,34 @@ def seed_data():
                     "INSERT INTO visits (patient_id, illness, doctor_id, status) VALUES (?,?,?, 'waiting')",
                     (patient_id, illness, doctor_id),
                 )
-        conn.commit()
 
+            # Admit a couple of the sample patients so beds/nurses aren't empty
+            cur.execute("SELECT id FROM users WHERE role = 'nurse'")
+            nurse_ids = [r[0] for r in cur.fetchall()]
+
+            admit_indices = [0, 2]  # which sample_patients (by order) to admit
+            for idx in admit_indices:
+                patient_id = idx + 1  # patients table is empty before this, so IDs are 1-based in order
+                doctor_id = doctor_ids[idx % len(doctor_ids)] if doctor_ids else None
+                floor_no = (idx % 5) + 1
+                cur.execute("SELECT room_no, bed_no, id FROM beds WHERE floor_no = ? AND occupied = 0 LIMIT 1", (floor_no,))
+                bed = cur.fetchone()
+                if bed and doctor_id:
+                    room_no, bed_no, bed_id = bed
+                   nurse_id = nurse_ids[0] if nurse_ids else None
+                    cur.execute(
+                        "INSERT INTO admissions (patient_id, doctor_id, floor_no, room_no, bed_no, nurse_id, status) "
+                        "VALUES (?,?,?,?,?,?, 'admitted')",
+                        (patient_id, doctor_id, floor_no, room_no, bed_no, nurse_id),
+                    )
+                    admission_id = cur.lastrowid
+                    cur.execute(
+                        "UPDATE beds SET occupied = 1, admission_id = ? WHERE id = ?", (admission_id, bed_id)
+                    )
+                    cur.execute(
+                        "INSERT INTO medications (admission_id, medicine_name, times_to_give) VALUES (?,?,?)",
+                        (admission_id, "Paracetamol", 3),
+                              conn.commit()
 
 create_tables()
 seed_data()
