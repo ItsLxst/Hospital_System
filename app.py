@@ -774,6 +774,30 @@ def seed_data():
                 "INSERT INTO medicines (name, category, stock) VALUES (?,?,?)",
                 default_medicines,
             )
+            cur.execute("SELECT COUNT(*) FROM patients")
+        if cur.fetchone()[0] == 0:
+            cur.execute("SELECT id FROM users WHERE role = 'doctor' ORDER BY id")
+            doctor_ids = [r[0] for r in cur.fetchall()]
+
+            sample_patients = [
+                ("Rohit Verma", "9876543210", "Chest pain"),
+                ("Sneha Joshi", "9876543211", "Fracture in left arm"),
+                ("Aarav Malhotra", "9876543212", "High fever"),
+                ("Meera Pillai", "9876543213", "Skin rash"),
+                ("Karan Chawla", "9876543214", "Migraine"),
+                ("Ishita Bose", "9876543215", "Pregnancy checkup"),
+                ("Devansh Rathi", "9876543216", "Ear infection"),
+                ("Ananya Reddy", "9876543217", "Anxiety and stress"),
+            ]
+
+            for i, (name, phone, illness) in enumerate(sample_patients):
+                cur.execute("INSERT INTO patients (name, phone) VALUES (?,?)", (name, phone))
+                patient_id = cur.lastrowid
+                doctor_id = doctor_ids[i % len(doctor_ids)] if doctor_ids else None
+                cur.execute(
+                    "INSERT INTO visits (patient_id, illness, doctor_id, status) VALUES (?,?,?, 'waiting')",
+                    (patient_id, illness, doctor_id),
+                )
         conn.commit()
 
 
